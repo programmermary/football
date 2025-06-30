@@ -8,12 +8,14 @@ function CardPage() {
   const navigate = useNavigate();
 
   const onClickHandle = () => {
+    // Launch confetti
     confetti({
       particleCount: 150,
       spread: 70,
       origin: { y: 0.6 }
     });
 
+    // Show card after 2 seconds
     setTimeout(() => {
       setShowCard(true);
     }, 2000);
@@ -29,19 +31,20 @@ function CardPage() {
         🎉 You are here because you got a high score! 🎉
       </h1>
 
-      <div className='flex flex-col items-center gap-4 bg-white p-6 rounded-lg shadow-lg'>
-        <h2 className='text-lg font-medium'>Click the button to claim your prize:</h2>
-
-        {!showCard && (
+      {/* 🎁 Click Me Section (hidden after card is shown) */}
+      {!showCard && (
+        <div className='flex flex-col items-center gap-4 bg-white p-6 rounded-lg shadow-lg'>
+          <h2 className='text-lg font-medium'>Click the button to claim your prize:</h2>
           <button
             onClick={onClickHandle}
             className='bg-yellow-400 hover:bg-yellow-500 text-black font-bold py-2 px-4 rounded transition duration-300'
           >
             🎁 Click Me!
           </button>
-        )}
-      </div>
+        </div>
+      )}
 
+      {/* 🎂 Card Display */}
       {showCard && (
         <div className='card mt-6 flex flex-col items-center gap-4 animate-fade-in'>
           <img src={CardBatman} alt="card" className='w-64 rounded shadow-lg' />

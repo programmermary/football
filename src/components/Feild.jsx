@@ -3,9 +3,12 @@ import { useNavigate } from 'react-router-dom';
 import messi from '../assets/messi.png';
 import football from '../assets/football.png';
 
+const BALL_SIZE = 64;
+const MESSI_SIZE = 96;
+
 function Field() {
   const [messiPos, setMessiPos] = useState({ x: 200, y: 200 });
-  const [ballPos, setBallPos] = useState({ x: 300, y: 200 });
+  const [ballPos, setBallPos] = useState({ x: 0, y: 0 });
   const [ballVelocity, setBallVelocity] = useState({ x: 0, y: 0 });
   const [dragging, setDragging] = useState(false);
   const [score, setScore] = useState(0);
@@ -14,22 +17,52 @@ function Field() {
   const goalRef = useRef(null);
   const navigate = useNavigate();
 
+  // Center the ball on first render
+  useEffect(() => {
+    if (fieldRef.current) {
+      const field = fieldRef.current;
+      const centerX = field.offsetWidth / 2 - BALL_SIZE / 2;
+      const centerY = field.offsetHeight / 2 - BALL_SIZE / 2;
+      setBallPos({ x: centerX, y: centerY });
+    }
+  }, []);
+
   // Animate ball movement and check for goal
   useEffect(() => {
     let animationFrame;
 
     const moveBall = () => {
       setBallPos((prev) => {
-        const newX = prev.x + ballVelocity.x;
-        const newY = prev.y + ballVelocity.y;
+        let newX = prev.x + ballVelocity.x;
+        let newY = prev.y + ballVelocity.y;
 
+        const fieldWidth = fieldRef.current.offsetWidth;
+        const fieldHeight = fieldRef.current.offsetHeight;
+
+        let newVelX = ballVelocity.x;
+        let newVelY = ballVelocity.y;
+
+        // Bounce off left/right
+        if (newX <= 0 || newX >= fieldWidth - BALL_SIZE) {
+          newVelX = -newVelX * 0.9;
+          newX = Math.max(0, Math.min(newX, fieldWidth - BALL_SIZE));
+        }
+
+        // Bounce off top/bottom
+        if (newY <= 0 || newY >= fieldHeight - BALL_SIZE) {
+          newVelY = -newVelY * 0.9;
+          newY = Math.max(0, Math.min(newY, fieldHeight - BALL_SIZE));
+        }
+
+        setBallVelocity({ x: newVelX * 0.95, y: newVelY * 0.95 });
+
+        // Check collision with goal
         if (goalRef.current && fieldRef.current) {
-          const ballSize = 64;
           const ballRect = {
             x: newX,
             y: newY,
-            width: ballSize,
-            height: ballSize,
+            width: BALL_SIZE,
+            height: BALL_SIZE,
           };
 
           const goalRect = goalRef.current.getBoundingClientRect();
@@ -58,19 +91,14 @@ function Field() {
             });
 
             return {
-              x: fieldRef.current.offsetWidth / 2 - 32,
-              y: fieldRef.current.offsetHeight / 2 - 32,
+              x: fieldWidth / 2 - BALL_SIZE / 2,
+              y: fieldHeight / 2 - BALL_SIZE / 2,
             };
           }
         }
 
         return { x: newX, y: newY };
       });
-
-      setBallVelocity((prev) => ({
-        x: prev.x * 0.95,
-        y: prev.y * 0.95,
-      }));
 
       animationFrame = requestAnimationFrame(moveBall);
     };
@@ -96,17 +124,14 @@ function Field() {
     const fieldWidth = fieldRef.current.offsetWidth;
     const fieldHeight = fieldRef.current.offsetHeight;
 
-    const messiSize = 96;
-    let x = clientX - rect.left - messiSize / 2;
-    let y = clientY - rect.top - messiSize / 2;
+    let x = clientX - rect.left - MESSI_SIZE / 2;
+    let y = clientY - rect.top - MESSI_SIZE / 2;
 
-    // Clamp Messi inside field
-    x = Math.max(0, Math.min(x, fieldWidth - messiSize));
-    y = Math.max(0, Math.min(y, fieldHeight - messiSize));
+    x = Math.max(0, Math.min(x, fieldWidth - MESSI_SIZE));
+    y = Math.max(0, Math.min(y, fieldHeight - MESSI_SIZE));
 
     setMessiPos({ x, y });
 
-    // Collision with ball
     const dx = ballPos.x - x;
     const dy = ballPos.y - y;
     const distance = Math.sqrt(dx * dx + dy * dy);

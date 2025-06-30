@@ -54,7 +54,15 @@ function Field() {
           newY = Math.max(0, Math.min(newY, fieldHeight - BALL_SIZE));
         }
 
-        setBallVelocity({ x: newVelX * 0.95, y: newVelY * 0.95 });
+        // Apply friction
+        newVelX *= 0.95;
+        newVelY *= 0.95;
+
+        // Stop if velocity is very low
+        if (Math.abs(newVelX) < 0.1) newVelX = 0;
+        if (Math.abs(newVelY) < 0.1) newVelY = 0;
+
+        setBallVelocity({ x: newVelX, y: newVelY });
 
         // Check collision with goal
         if (goalRef.current && fieldRef.current) {
@@ -140,9 +148,11 @@ function Field() {
       const directionX = dx / distance;
       const directionY = dy / distance;
 
+      const kickStrength = 12;
+
       setBallVelocity({
-        x: directionX * 10,
-        y: directionY * 10,
+        x: directionX * kickStrength,
+        y: directionY * kickStrength,
       });
     }
   };
